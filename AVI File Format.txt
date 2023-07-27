@@ -1,0 +1,79 @@
+AVI Video Format (uncompressed with no audio)
+
+All values (except signatures and 24 bit RGB pixels) are dwords (4 bytes) and are Least Significant Byte first - signatures are multiples of 4 bytes padded with 0x00.
+
+Unless noted, this is applicable for both 8 bit and 24 bit formats.
+
+Header (0x800 long for 24 bit, 0x1000 long for 24 bit):
+0x00 Signature (52 49 46 46) - "RIFF"
+0x04 Index header pointer pointing to offset of last frame
+0x08 Signature (41 56 49 20 4C 49 53 54) - "AVI LIST"
+0x10 Signature "AVI Video Stream #1" pointer (220 for 24 bit, 1244 for 8 bit)
+0x14 Signature (68 64 72 6C 61 76 69 68 38 00 00 00) - "hdrlavih8"
+0x20 Time per frame in uS 
+0x24 to 0x28 = 0
+0x2C = 2064
+0x30 Frame count 
+0x34 = 0
+0x38 = 1
+0x3C Frame size (Width * Height) - each line has 0x00 padding if size is not a multiple of 4
+0x40 Width in pixels 
+0x44 Height in pixels 
+0x48 to 0x54 = 0
+0x58 Signature (4C 49 53 54) - "LIST"
+0x5C = Offset of last dword of signature "AVI Video Stream #1" 144 (24 bit), 1168 (8 bit)
+0x60 Signature (73 74 72 6C 73 74 72 68 38 00 00 00) - "strlstrh8"
+0x6C Signature (76 69 64 73 44 49 42 20) "vidsDIB "
+0x74 to 0x7C = 0
+0x80 Frames per second Modulus (normally 1000)
+0x84 Frames per second Fraction
+0x88 = 0
+0x8C Frame count 
+0x90 Frame size (Width * Height) - each line has 0x00 padding if size is not a multiple of 4
+0x94 = 900
+0x98 to 0x9C = 0
+0xA0 = Combined Height (Bits 16-31 - 1-65535) and Width (Bits 0-15 - 1-65535) in pixels
+0xA4 = 1718776947
+0xA8 = Offset of last dword of second pallete entries dword: 40 (24 bit), 1064 (8 bit)
+0xAC = Offset of last dword of ID "AVI Video Stream #1" 144 (24 bit), 1168 (8 bit)
+0xB0 Width in pixels
+0xB4 Height in pixels
+0xB8 Bits 0-15: 2 (24 bit)/1 (8 bit), Bits 16-31: Bit depth
+0xBC = 0
+0xC0 Frame size (Width * Height) - each line has 0x00 padding if size is not a multiple of 4
+0xC4 to 0xC8 = 0 
+0xCC = Palette entries: 0 (24 bit), 256 (8 bit)
+0xD0 = Palette entries: 0 (24 bit), 256 (8 bit)
+0xD4 Signature (73 74 72 6E) - "strn" (24 bit), Start of palette entries 0-255: BGR with 0x00 padding byte (8 bit)
+
+The following is offset 0x400 for 8 bit (no offset for 24 bit):
+0xD8 = Video stream header size (20)
+0xDC Signature (41 56 49 20 56 69 64 65 6F 20 53 74 72 65 61 6D 20 23 31 00) - "AVI Video Stream #1" (24 bit)
+0xF0 Signature (4A 55 4E 4B) - "JUNK"
+0xF4 Signature "LIST" offset from next dword location (= 1788) (24 bit; = 2812 for 8 bit)
+0xF8 to 0x7F0 = 0 (24 bit; end address has an additional offset of 0x400 for 8 bit)
+
+The following is offset 0x800 for 8 bit (no offset for 24 bit):
+0x7F4 Signature (4C 49 53 54) - "LIST"
+0x7F8 Combined size of all frames: 4 + (frame count * (frame size + 8))
+0x7FC Signature (6D 6F 76 69) - "movi"
+
+For each AVI frame with the first starting at 0x800 (for 24 bit; 0x1000 for 8 bit):
+0x00 AVI frame Signature (30 30 64 62) - "00dB"
+0x04 AVI frame size (Width * Height) - each line has 0x00 padding if size is not a multiple of 4
+0x08 AVI frame data (count is frame size) - BMP format - Subpixel order is B-G-R (3 bytes long) and scan direction is from from left to right and bottom to top
+
+Index header after the last AVI frame data:
+0x00 Signature (69 64 78 31) - "idx1"
+0x04 Data size from offset 0x08
+Index data for each frame:
+0x00 Signature (30 30 64 62) - "00db"
+0x04 = 16
+0x08 = Frame offset (frame ID starts from 0): 4 + (frame ID * (frame size + 8))
+0x0C = Frame size (Width * Height) - each line has 0x00 padding if size is not a multiple of 4
+After the index data, padding so that the file size is a multiple of 512
+
+24 bit colour: If ((Width * 3) % 4) > 0: Line length = (Width * 3) + (4 - ((Width * 3) % 4))
+8 bit colour: If (Width % 4) > 0: Line length = Width + (4 - (Width % 4))
+File size (without padding): 24 bit colour: 0x800 + ((Line length * Height) + 8) * Frame count) + 8 + (Frame count * 16); for 8 bit colour, start with 0x1000 instead of 0x800
+After the above operation, if (File size % 512) > 0: File size += (512 - (File size % 512))

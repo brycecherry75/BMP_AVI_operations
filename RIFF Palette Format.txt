@@ -1,0 +1,20 @@
+BMP Palette Format
+
+Multi-byte values except for the colour table are read Least Siginificant Byte first.
+
+Name	 		Size	 	Offset 	Description
+Signature	 	4 bytes 	0000h 	'RIFF'
+Size		 	4 bytes 	0004h 	Size of header and table (= 84 for 16 colours, = 1044 for 256 colours)
+Signature 		8 bytes 	0008h 	'PAL data'
+Size			4 bytes	0010h		Size of table (= 72 for 16 colours, = 1032 for 256 colours)
+			2 bytes	0014h		= 768
+Colours Used	2 bytes	0016h		Number of actually used colors. For a 8-bit / pixel bitmap this will be 100h or 256.
+	
+ColorTable 	4 * NumColors bytes 	0018h 	
+  	Red 		1 byte 	  	Red intensity
+	Green		1 byte 	  	Green intensity
+	Blue 		1 byte 	  	Blue intensity
+	reserved 	1 byte 	  	unused (= 0)
+repeated NumColors times
+
+Terminator (= 0 for 16 colours, = 992495 for 256 colours)
